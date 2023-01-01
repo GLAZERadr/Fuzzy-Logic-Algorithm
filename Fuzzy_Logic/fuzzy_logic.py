@@ -1,4 +1,5 @@
 import pandas as pd
+import csv
 
 #membaca data excel dan assign ke variabel
 supplier = pd.read_excel('supplier.xlsx')
@@ -12,9 +13,10 @@ kualitas = supplier['kualitas']
 #assign harga
 harga = supplier['harga']
 
-#proses fuzzyfication dengan looping banyaknya data
+#proses fuzzyfication dengan looping banyaknya kolom data
 #inisialisasi list kosong untuk menampung nilai setelah deffuzzyfication
 def fuzzi(supplier_id, kualitas, harga ,panjang_kolom):
+  #inisialisa list kosong 
   fuzzy = []
   #looping dengan range banyaknya data sebanyak 100 kolom
   for i in range(panjang_kolom):
@@ -132,20 +134,43 @@ def main():
   #mengurutkan nilai dari supplier berdasarkan nilai kelayakan dari terbesar ke terkecil
   fuzzy = fuzzi(supplier_id, kualitas, harga ,panjang_kolom)
   after_sorted = sorted(fuzzy, key=lambda x: x[1], reverse=True)
-    
-  print('-'*120)
-  print("sorted supplier: ")
-  print(after_sorted)
-  #mengambil 5 terbesar dari dalam list
-  data = {'best supplier': after_sorted[:5]}
-      
 
-  print('-'*120)
-  #mengubah data menjadi dataframe
-  result_csv = pd.DataFrame(data, columns = ['best supplier'])
-  #menyimpan data dalam bentuk csv
-  result_csv.to_csv('best_supplier.csv')
-  print(data)
+  #format output dalam bentuk table
+  #hitung panjang maksimum dari tiap kolom
+  column_width = [max(len(str(x))for x in column)for column in zip(*after_sorted)]
+  #output header tabel
+  print("id".ljust(column_width[0]), "NK".ljust(column_width[1]), "kualitas".ljust(column_width[2]), "harga".ljust(column_width[3]))
+  #output pembatas dari header
+  print("-" * (column_width[0] + column_width[1] + column_width[2] + 2 + column_width[3] + 9))
+  #output hasil dalam bentuk tabel
+  for inner_list in after_sorted:
+    print(str(inner_list[0]).ljust(column_width[0]) + " " + str(inner_list[1]).ljust(column_width[1]) + " " + str(inner_list[2]).ljust(column_width[2])+ "        " + str(inner_list[3]).ljust(column_width[3]))
+    
+  print('-'*23)
+
+  #mengambil 5 terbesar dari dalam list
+  data0 = after_sorted[:5]
+
+ #format output best supplier dalam tabel
+  print("-----Best Supplier-----")
+
+  column = [max(len(str(x))for x in column)for column in zip(*data0)]
+
+  print("id".ljust(column[0]), "NK".ljust(column[1]), "kualitas".ljust(column[2]), "harga".ljust(column[3]))
+
+  print("-" * (column[0] + column[1] + column[2] + 2 + column[3] + 12))
+
+  for inner_list in data0:
+    print(str(inner_list[0]).ljust(column[0]) + " " + str(inner_list[1]).ljust(column[1]) + " " + str(inner_list[2]).ljust(column[2])+ "        " + str(inner_list[3]).ljust(column[3]))
+
+  #menyimpan data best supplier dalam bentuk csv
+  data = [after_sorted[:5]]
+  with open('best_supplier.csv', 'w', newline = '')as file:
+    writer = csv.writer(file)
+    writer.writerow(["id", "NK", "kualitas", "harga"])
+    for inner_list in data:
+      writer.writerows(inner_list)
+
 
 if __name__ == "__main__":
   main()
